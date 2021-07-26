@@ -1,0 +1,20 @@
+telegram:
+    api_id: 0
+    api_hash: https://my.telegram.org
+    slave_bot_token: https://t.me/BotFather
+config:
+    prefixes:
+        - .
+    sessions:
+        - blankie
+        - knees
+        - nezuko
+    log_chat: -1001278205033
+    spamwatch_api: https://t.me/SpamWatchBot
+    saucenao_api: https://saucenao.com/user.php?page=search-api
+    lolicon_api: https://t.me/loliconApiBot
+    log_user_joins: false
+    log_user_adds: true
+    log_reports: true
+    log_forwards: true
+    log_ring_maxlen: 69420
