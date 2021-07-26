@@ -1,0 +1,66 @@
+import html
+import asyncio
+from collections import defaultdict
+from pyrogram import Client, ContinuePropagation
+from pyrogram.raw.types import UpdateNewChannelMessage, UpdateNewMessage, MessageService, PeerChat, PeerChannel, MessageActionChatAddUser, MessageActionChatJoinedByLink, PeerUser
+from .. import config, log_errors, log_ring
+
+def sexy_user_name(user):
+    text = user.first_name
+    if user.last_name:
+        text += ' ' + user.last_name
+    return f'{"<code>[DELETED]</code>" if user.deleted else (html.escape(text or "Empty???") + force_ltr)} [<code>{user.id}</code>]'
+
+handled = defaultdict(set)
+lock = asyncio.Lock()
+force_ltr = '\u200E'
+
+@Client.on_raw_update()
+@log_errors
+async def log_user_joins(client, update, users, chats):
+    if isinstance(update, (UpdateNewChannelMessage, UpdateNewMessage)):
+        message = update.message
+        if isinstance(message, MessageService):
+            action = message.action
+            if isinstance(action, (MessageActionChatAddUser, MessageActionChatJoinedByLink)):
+                if isinstance(message.peer_id, PeerChannel):
+                    chat_id = message.peer_id.channel_id
+                    sexy_chat_id = int('-100' + str(chat_id))
+                elif isinstance(message.peer_id, PeerChat):
+                    chat_id = message.peer_id.chat_id
+                    sexy_chat_id = -chat_id
+                else:
+                    return
+                peer = await client.resolve_peer(config['config']['log_chat'])
+                if peer == message.peer_id:
+                    return
+                is_join = isinstance(action, MessageActionChatJoinedByLink)
+                if not is_join:
+                    is_join = action.users == [getattr(message.from_id, 'user_id', None)]
+                if is_join and not config['config']['log_user_joins']:
+                    raise ContinuePropagation
+                if not is_join and not config['config']['log_user_adds']:
+                    raise ContinuePropagation
+                text = f"<b>{'User Join Event' if is_join else 'User Add Event'}</b>\n- <b>Chat:</b> "
+                atext = html.escape(chats[chat_id].title)
+                if getattr(chats[chat_id], 'username', None):
+                    atext = f'<a href="https://t.me/{chats[chat_id].username}">{atext}</a>'
+                text += f"{atext}{force_ltr} [<code>{sexy_chat_id}</code>]\n"
+                async with lock:
+                    if message.id not in handled[sexy_chat_id]:
+                        if isinstance(message.from_id, PeerUser):
+                            adder = sexy_user_name(users[message.from_id.user_id])
+                        else:
+                            adder = 'Anonymous'
+                        if is_join:
+                            text += f'- <b>User:</b> {adder}\n'
+                            if isinstance(action, MessageActionChatJoinedByLink):
+                                text += f'- <b>Inviter:</b> {sexy_user_name(users[action.inviter_id])}'
+                        else:
+                            text += f'- <b>Adder:</b> {adder}\n- <b>Added Users:</b>\n'
+                            for user in action.users:
+                                text += f'--- {sexy_user_name(users[user])}\n'
+                        log_ring.append(text)
+                        handled[sexy_chat_id].add(message.id)
+                        return
+    raise ContinuePropagation
