@@ -1,7 +1,7 @@
 telegram:
-    api_id: 0
-    api_hash: https://my.telegram.org
-    slave_bot_token: https://t.me/BotFather
+    api_id: 2712818
+    api_hash: fda406cc4f648c303a0fb77255f2a026
+    slave_bot_token: 1929533636:AAFPQ9I2ojTGQVgaXkNEt1OeEBNNWF1nu2A
 config:
     prefixes:
         - .
@@ -9,10 +9,10 @@ config:
         - blankie
         - knees
         - nezuko
-    log_chat: -1001278205033
-    spamwatch_api: https://t.me/SpamWatchBot
-    saucenao_api: https://saucenao.com/user.php?page=search-api
-    lolicon_api: https://t.me/loliconApiBot
+    log_chat: -1001477568507
+    spamwatch_api: WtVoY5eIvpIqakuWsHiMU29C1Xsjcqj3SpMLfldZ3u8zKshloS0meZAPy~ourVt1
+    saucenao_api: 21e080b4ba341e0bd69aecb68224d26c52250eff
+    lolicon_api: 6211654860fecb19c2e670
     log_user_joins: false
     log_user_adds: true
     log_reports: true
